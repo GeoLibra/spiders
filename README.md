@@ -5,3 +5,5 @@ Python爬虫集锦
 | ------ | ------ |
 | whu_seat | 武大占座程序 |
 | github  | 模拟登陆github |
+| proxy  | 抓取代理 |
+| task  | 定时任务 |

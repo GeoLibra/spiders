@@ -51,7 +51,6 @@ class MySeat:
         if r['status'] == 'success':
             if r['data']:
                 info = r['data'][0]
-
                 print('预约时间:%s' % (info['begin'] + '--' + info['end']))
                 print('预约位置:%s' % info['location'])
                 return r

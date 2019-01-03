@@ -6,7 +6,9 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+import scrapy
+from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
+import random
 
 class DianpingSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -101,3 +103,18 @@ class DianpingDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+class MyUserAgentMiddleware(UserAgentMiddleware):
+    def __init__(self,user_agent):
+        self.user_agent=user_agent
+    '''
+    classmethod修饰符对应的函数不需要实例化,不需要self参数,但第一个参数需要表示自身类的cls参数,可以来调用类的属性,方法,实例化对象等
+    '''
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            user_agent=crawler.settings.get('MY_USER_AGENT')
+        )
+    def process_request(self, request, spider):
+        agent=random.choice(self.user_agent)
+        request.headers['User-Agent']=agent

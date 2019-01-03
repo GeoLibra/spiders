@@ -97,13 +97,12 @@ class Whu_wxseat():
                 self.cancelBook(bookId)
 
         book_day = input("请输入是否预约当天:t表示当天,m表示明天(默认):")
-        nextDay = True if book_day != 't' else False
-        seat.waitFor(nextDay)
+
         if not book_day:
             book_day = "m"
-        book_time = input("请输入预约时间:如8:00-10:00(默认):")
+        book_time = input("请输入预约时间:如08:00-10:00(默认):")
         if not book_time:
-            start = "8:00"
+            start = "08:00"
             end = "10:00"
         else:
             start = book_time.split("-")[0]
@@ -119,6 +118,9 @@ class Whu_wxseat():
         # book_time=book_time.strftime("%Y-%m-%d")
         seatId=self.get_seatId(roomId,seat_num,book_time)
         if seatId:
+            nextDay = True if book_day != 't' else False
+            seat.waitFor(nextDay)
+
             start_time=self.get_time(seatId,start,book_time,flag)
             if not start_time:
                 return

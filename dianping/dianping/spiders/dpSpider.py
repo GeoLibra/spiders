@@ -3,6 +3,8 @@ import scrapy
 from scrapy import Request
 from lxml import etree
 import re
+import json
+from dianping.items import DianpingItem
 class DpspiderSpider(scrapy.Spider):
     name = 'dpSpider' # 爬虫名称
     allowed_domains = [] # 搜索的域名范围,规定爬虫只爬取这个域名下的网页
@@ -46,13 +48,42 @@ class DpspiderSpider(scrapy.Spider):
                 url=self.start_urls[0]+'/'+p_url[-2]+'/'+d_url[-1]+p_url[-1]
                 print(place_names[place_urls.index(place_url)],dish_names[dish_urls.index(dish_url)])
                 yield Request(url, callback=self.parseShopList)
-                break
+
             break
     def parseShopList(self,response):
+        # print("sadadad",response.request.headers)
         # shoplist=response.xpath('//*[@id="shop-all-list"]/ul/li/div[2]/div[1]/a/@*[name()="href" or name()="title"]').extract()
 
         shopList=response.xpath('//*[@id="shop-all-list"]/ul/li/div[2]/div[1]/a/@href').extract()
-        # 页码
-        pageList=response.xpath('//div[@class="page"]/a/@href')
-        if pageList:
-            pass
+        # 当前页码
+        cur_page=response.xpath('//div[@class="page"]/a[@class="cur"]/text()').extract()
+        print(cur_page)
+        if len(cur_page)==0 or cur_page[0]!="1":
+            # 只有一页或者有多页但当前不在第一页,此时解析店铺页面
+            for shop in shopList:
+                yield Request(shop, callback=self.parseShop)
+
+        else:
+            # 有多页,且第一页,获取所有的页面url
+            pageList = response.xpath('//div[@class="page"]/a/@href').extract()
+            print(pageList)
+            for page in pageList:
+                yield Request(page, callback=self.parseShopList)
+    def parseShop(self,response):
+        shop_info = re.findall('window.shop_config=(.*?)</script>', response.text, re.S)
+
+        shop_info = json.dumps(shop_info[0])
+        shop_info=json.loads(shop_info)
+        # title=response.xpath('//*[@id="basic-info"]/h1/text()').extract()
+        # address=response.xpath('//*[@id="address"]/text()').extract()
+        star=response.xpath('//*[@id="basic-info"]/div[1]/span[1]/@title').extract()
+        reviewCount=response.xpath('//*[@id="reviewCount"]/text()').extract()
+        price=response.xpath('//*[@id="avgPriceTitle"]/text()').extract()
+        flavor=response.xpath('//*[@id="comment_score"]/span[1]/text()').extract()
+        environment=response.xpath('//*[@id="comment_score"]/span[2]/text()').extract()
+        service=response.xpath('//*[@id="comment_score"]/span[3]/text()').extract()
+        comm=response.xpath('//*[@id="summaryfilter-wrapper"]/div/label/span/text()').extract()
+        print(star,reviewCount,price,flavor,environment,service,comm)
+        item=DianpingItem()
+        item['shop_info']=shop_info
+        return item

@@ -31,14 +31,28 @@ class DpspiderSpider(scrapy.Spider):
         # print(name)
         # 地点
         place_urls = place_selector.xpath('//dl/dd/ul/li/a/@href')
-        # place_names = place_selector.xpath('//dl/dd/ul/li/a/text()')
+        place_names = place_selector.xpath('//dl/dd/ul/li/a/text()')
         # 菜系
         dish_urls = dish_selector.xpath('//ul/li/a/@href')
-        # dish_names = dish_selector.xpath('//ul/li/a/text()')
+        dish_names = dish_selector.xpath('//ul/li/a/text()')
         # print(place_urls)
         # print(place_names)
         # print(dish_urls)
         # print(dish_names)
         for place_url in place_urls:
+            p_url=place_url.split('/')
             for dish_url in dish_urls:
-                pass
+                d_url=dish_url.split('/')
+                url=self.start_urls[0]+'/'+p_url[-2]+'/'+d_url[-1]+p_url[-1]
+                print(place_names[place_urls.index(place_url)],dish_names[dish_urls.index(dish_url)])
+                yield Request(url, callback=self.parseShopList)
+                break
+            break
+    def parseShopList(self,response):
+        # shoplist=response.xpath('//*[@id="shop-all-list"]/ul/li/div[2]/div[1]/a/@*[name()="href" or name()="title"]').extract()
+
+        shopList=response.xpath('//*[@id="shop-all-list"]/ul/li/div[2]/div[1]/a/@href').extract()
+        # 页码
+        pageList=response.xpath('//div[@class="page"]/a/@href')
+        if pageList:
+            pass
